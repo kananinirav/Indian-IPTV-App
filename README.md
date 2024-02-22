@@ -2,7 +2,7 @@
 
 Watch 500+ live india TV channels with IPTV **Android Application**
 
-[**Download Link 🔗**](https://github.com/kananinirav/iptv-indian-app/releases/download/v1.0.0/iptv.apk)
+[**Download Latest APK From Release**](https://github.com/kananinirav/iptv-indian-app/releases/)
 
 ## Feature
 
