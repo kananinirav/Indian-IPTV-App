@@ -10,6 +10,8 @@ Watch 500+ live india TV channels with **IPTV Android Application**
 - Search Channels
 - Full Screen View
 
+<h3 align="center">"I strongly advise against publishing it on the Play Store as it may result in the suspension of your account due to Google's privacy policy."</h3>
+
 ## Sample Image
 
 <p float="left">
@@ -34,7 +36,6 @@ Watch 500+ live india TV channels with **IPTV Android Application**
 
 - IPTV operates as a simple m3u streaming player.
 - Any issues regarding internet regulations should be addressed directly to the source website. The developer assumes no legal responsibility.
-- **<span style="color:red">We strongly advise against publishing it on the Play Store as it may result in the suspension of your account due to Google's privacy policy.</span>**
 
 ## Credits
 
