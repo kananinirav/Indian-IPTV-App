@@ -11,6 +11,16 @@ Download Link 🔗
 - Watch Channels
 - Full Screen Support
 
+## Sample Image
+
+<p float="left">
+  <img src="./images/1.png" width="100" />
+  <img src="./images/2.png" width="100" />
+  <img src="./images/3.png" width="100" />
+  <img src="./images/4.png" width="100" />
+  <img src="./images/5.png" width="100" />
+</p>
+
 **If you find this helpful, please give a star to this repository and share it with your friends. Your support is greatly appreciated!**
 
 ## Credits
@@ -19,13 +29,13 @@ Download Link 🔗
 
 ## Star History
 
-[![Star History Chart](https://api.star-history.com/svg?repos=kananinirav/Youtube-AdBlocker&type=Date)](https://star-history.com/#kananinirav/Youtube-AdBlocker&Date)
+[![Star History Chart](https://api.star-history.com/svg?repos=kananinirav/iptv-indian-app&type=Date)](https://star-history.com/#kananinirav/iptv-indian-app&Date)
 
 ## Contributors
 
 Please Feel free to contribute by submitting a Pull Request!
 
-[![](https://contrib.rocks/image?repo=kananinirav/Youtube-AdBlocker)](https://github.com/kananinirav/Youtube-AdBlocker/graphs/contributors)
+[![](https://contrib.rocks/image?repo=kananinirav/iptv-indian-app)](https://github.com/kananinirav/iptv-indian-app/graphs/contributors)
 
 ### If you find this extension useful, consider supporting the project by using the "Buy me a Coffee" link below
 
