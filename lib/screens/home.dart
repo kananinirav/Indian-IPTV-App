@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import '/screens/player.dart';
 import '../model/channel.dart';
@@ -16,6 +18,7 @@ class _HomeState extends State<Home> {
   TextEditingController searchController = TextEditingController();
   final ChannelsProvider channelsProvider = ChannelsProvider();
   bool _isLoading = true;
+  Timer? _debounceTimer;
 
   @override
   void initState() {
@@ -24,19 +27,28 @@ class _HomeState extends State<Home> {
   }
 
   Future<void> fetchData() async {
-    final data = await channelsProvider.fetchM3UFile();
-    setState(() {
-      channels = data;
-      filteredChannels = data;
-      _isLoading = false;
-    });
+    try {
+      final data = await channelsProvider.fetchM3UFile();
+      setState(() {
+        channels = data;
+        filteredChannels = data;
+        _isLoading = false;
+      });
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('There was a problem finding the data')));
+    }
   }
 
-  void filterChannels(query) {
-    final data = channelsProvider.filterChannels(query);
-    setState(() {
-      filteredChannels = data;
-      _isLoading = false;
+  void filterChannels(String query) async {
+    if (_debounceTimer != null) {
+      _debounceTimer!.cancel();
+    }
+    _debounceTimer = Timer(const Duration(milliseconds: 500), () async {
+      final filteredData = channelsProvider.filterChannels(query);
+      setState(() {
+        filteredChannels = filteredData;
+      });
     });
   }
 
