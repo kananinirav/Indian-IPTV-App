@@ -66,8 +66,11 @@ class _PlayerState extends State<Player> {
             : _channelNotFound
                 ? const Text('Channel not available now',
                     style: TextStyle(fontSize: 24.0))
-                : Chewie(
-                    controller: chewieController,
+                : SizedBox(
+                    height: MediaQuery.of(context).size.height * 0.5,
+                    child: Chewie(
+                      controller: chewieController,
+                    ),
                   ),
       ),
     );
