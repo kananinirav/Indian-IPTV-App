@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'screens/home.dart';
+import 'package:ip_tv/screens/homepage.dart';
+
 
 void main() => runApp(M3UPlayer());
 
@@ -14,11 +15,7 @@ class _M3UPlayerState extends State<M3UPlayer> {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Live Tv',
-      home: Scaffold(
-          appBar: AppBar(
-            title: const Text('Channel List'),
-          ),
-          body: const Home()),
+      home: GroupTitleListView(),
     );
   }
 }
