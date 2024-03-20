@@ -1,12 +1,12 @@
 import 'package:chewie/chewie.dart';
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
-import '../model/channel.dart';
 
 class Player extends StatefulWidget {
-  final Channel channel;
+  final String streamUrl;
+  final String name;
 
-  Player({required this.channel});
+  const Player({super.key, required this.streamUrl, required this.name});
 
   @override
   _PlayerState createState() => _PlayerState();
@@ -22,7 +22,7 @@ class _PlayerState extends State<Player> {
   void initState() {
     super.initState();
     videoPlayerController =
-        VideoPlayerController.networkUrl(Uri.parse(widget.channel.streamUrl))
+        VideoPlayerController.networkUrl(Uri.parse(widget.streamUrl))
           ..initialize().then((_) {
             setState(() {
               _isLoading = false;
@@ -58,7 +58,7 @@ class _PlayerState extends State<Player> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.channel.name),
+        title: Text(widget.name),
       ),
       body: Center(
         child: _isLoading

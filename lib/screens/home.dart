@@ -1,18 +1,17 @@
 import 'dart:async';
-
 import 'package:flutter/material.dart';
 import '/screens/player.dart';
 import '../model/channel.dart';
 import '../provider/channels_provider.dart';
 
-class Home extends StatefulWidget {
-  const Home({Key? key}) : super(key: key);
+class Search extends StatefulWidget {
+  const Search({super.key});
 
   @override
-  _HomeState createState() => _HomeState();
+  _SearchState createState() => _SearchState();
 }
 
-class _HomeState extends State<Home> {
+class _SearchState extends State<Search> {
   List<Channel> channels = [];
   List<Channel> filteredChannels = [];
   TextEditingController searchController = TextEditingController();
@@ -36,7 +35,7 @@ class _HomeState extends State<Home> {
       });
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('There was a problem finding the data')));
+          const SnackBar(content: Text('There was a problem finding the data')));
     }
   }
 
@@ -59,54 +58,60 @@ class _HomeState extends State<Home> {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: TextField(
-            controller: searchController,
-            onChanged: (value) {
-              filterChannels(value);
-            },
-            decoration: const InputDecoration(
-              labelText: 'Search',
-              hintText: 'Search channels...',
-              prefixIcon: Icon(Icons.search),
-              border: OutlineInputBorder(),
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Search channel'),
+      ),
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: TextField(
+              controller: searchController,
+              onChanged: (value) {
+                filterChannels(value);
+              },
+              decoration: const InputDecoration(
+                labelText: 'Search',
+                hintText: 'Search channels...',
+                prefixIcon: Icon(Icons.search),
+                border: OutlineInputBorder(),
+              ),
             ),
           ),
-        ),
-        Expanded(
-          child: _isLoading
-              ? const Center(
-                  child: CircularProgressIndicator(),
-                )
-              : ListView.builder(
-                  itemCount: filteredChannels.length,
-                  itemBuilder: (context, index) {
-                    return ListTile(
-                      leading: Image.network(
-                        filteredChannels[index].logoUrl,
-                        width: 50,
-                        height: 50,
-                        fit: BoxFit.contain,
-                      ),
-                      title: Text(filteredChannels[index].name),
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => Player(
-                              channel: filteredChannels[index],
+          Expanded(
+            child: _isLoading
+                ? const Center(
+                    child: CircularProgressIndicator(),
+                  )
+                : ListView.builder(
+                    itemCount: filteredChannels.length,
+                    itemBuilder: (context, index) {
+                      return ListTile(
+                        leading: Image.network(
+                          filteredChannels[index].logoUrl,
+                          width: 50,
+                          height: 50,
+                          fit: BoxFit.contain,
+                        ),
+                        title: Text(filteredChannels[index].name),
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => Player(
+                                streamUrl: filteredChannels[index].streamUrl,
+                                name: filteredChannels[index].name,
+                              ),
                             ),
-                          ),
-                        );
-                      },
-                    );
-                  },
-                ),
-        ),
-      ],
+                          );
+                        },
+                      );
+                    },
+                  ),
+          ),
+        ],
+      ),
     );
   }
 }
