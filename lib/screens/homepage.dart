@@ -5,6 +5,8 @@ import '../model/channel.dart';
 import '../widget/group_card.dart';
 
 class GroupTitleListView extends StatefulWidget {
+  const GroupTitleListView({super.key});
+
   @override
   _GroupTitleListViewState createState() => _GroupTitleListViewState();
 }
@@ -27,14 +29,14 @@ class _GroupTitleListViewState extends State<GroupTitleListView> {
       floatingActionButton: FloatingActionButton(
           onPressed: () {
             Navigator.push(
-                context, MaterialPageRoute(builder: (context) => Search()));
+                context, MaterialPageRoute(builder: (context) => const Search()));
           },
-          child: Icon(Icons.search)),
+          child: const Icon(Icons.search)),
       body: FutureBuilder<List<String>>(
         future: _groupTitlesFuture,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(child: CircularProgressIndicator());
+            return const Center(child: CircularProgressIndicator());
           }
           if (snapshot.hasError) {
             return Center(child: Text('Error: ${snapshot.error}'));
@@ -51,18 +53,18 @@ class _GroupTitleListViewState extends State<GroupTitleListView> {
                   if (snapshot.connectionState == ConnectionState.waiting) {
                     return ListTile(
                       title: Text(groupTitle),
-                      subtitle: CircularProgressIndicator(),
-                      leading: Icon(Icons.folder),
+                      subtitle: const CircularProgressIndicator(),
+                      leading: const Icon(Icons.folder),
                     );
                   }
                   if (snapshot.hasError) {
                     return ListTile(
                       title: Text(groupTitle),
                       subtitle: Text('Error: ${snapshot.error}'),
-                      leading: Icon(Icons.error),
+                      leading: const Icon(Icons.error),
                     );
                   }
-                  final defaultLogoUrl =
+                  const defaultLogoUrl =
                       'https://fastly.picsum.photos/id/928/200/200.jpg?hmac=5MQxbf-ANcu87ZaOn5sOEObpZ9PpJfrOImdC7yOkBlg';
                   final channels = snapshot.data ?? [];
                   final logoUrl = channels.isNotEmpty
@@ -81,7 +83,7 @@ class _GroupTitleListViewState extends State<GroupTitleListView> {
                       child: Row(
                         children: [
                           Padding(
-                            padding: EdgeInsets.all(8.0),
+                            padding: const EdgeInsets.all(8.0),
                             child: Image.network(
                               logoUrl,
                               width: 48, // Adjust the width as needed
@@ -90,11 +92,11 @@ class _GroupTitleListViewState extends State<GroupTitleListView> {
                           ),
                           Expanded(
                             child: Padding(
-                              padding: EdgeInsets.symmetric(
+                              padding: const EdgeInsets.symmetric(
                                   vertical: 16.0, horizontal: 8.0),
                               child: Text(
                                 groupTitle,
-                                style: TextStyle(fontSize: 18),
+                                style: const TextStyle(fontSize: 18),
                               ),
                             ),
                           ),

@@ -43,7 +43,7 @@ class ChannelsProvider with ChangeNotifier {
           logoUrl = _extractValueFromTag(line, 'tvg-logo');
         } else if (line.isNotEmpty && !line.startsWith('#')) {
           streamUrl = line;
-          if (name != null && name.isNotEmpty && streamUrl != null && streamUrl.isNotEmpty) {
+          if (name != null && name.isNotEmpty && streamUrl.isNotEmpty) {
             channels.add(Channel(
               name: name,
               logoUrl: logoUrl ?? 'https://fastly.picsum.photos/id/928/200/200.jpg?hmac=5MQxbf-ANcu87ZaOn5sOEObpZ9PpJfrOImdC7yOkBlg',

@@ -6,7 +6,7 @@ import '../screens/player.dart';
 class ChannelListPage extends StatelessWidget {
   final String groupTitle;
 
-  ChannelListPage({required this.groupTitle});
+  const ChannelListPage({super.key, required this.groupTitle});
 
   @override
   Widget build(BuildContext context) {
@@ -22,7 +22,7 @@ class ChannelListPage extends StatelessWidget {
 class ChannelListView extends StatelessWidget {
   final String groupTitle;
 
-  ChannelListView({required this.groupTitle});
+  const ChannelListView({super.key, required this.groupTitle});
 
   @override
   Widget build(BuildContext context) {
@@ -30,7 +30,7 @@ class ChannelListView extends StatelessWidget {
       future: ChannelsProvider().getChannelsByGroupTitle(groupTitle),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return Center(child: CircularProgressIndicator());
+          return const Center(child: CircularProgressIndicator());
         }
         if (snapshot.hasError) {
           return Center(child: Text('Error: ${snapshot.error}'));

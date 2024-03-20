@@ -1,13 +1,12 @@
 import 'package:chewie/chewie.dart';
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
-import '../model/channel.dart';
 
 class Player extends StatefulWidget {
   final String streamUrl;
   final String name;
 
-  Player({required this.streamUrl, required this.name});
+  const Player({super.key, required this.streamUrl, required this.name});
 
   @override
   _PlayerState createState() => _PlayerState();

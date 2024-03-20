@@ -5,7 +5,7 @@ import '../model/channel.dart';
 import '../provider/channels_provider.dart';
 
 class Search extends StatefulWidget {
-  const Search({Key? key}) : super(key: key);
+  const Search({super.key});
 
   @override
   _SearchState createState() => _SearchState();
@@ -35,7 +35,7 @@ class _SearchState extends State<Search> {
       });
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('There was a problem finding the data')));
+          const SnackBar(content: Text('There was a problem finding the data')));
     }
   }
 
