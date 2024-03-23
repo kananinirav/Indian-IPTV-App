@@ -90,6 +90,14 @@ class _HomeState extends State<Home> {
                         width: 50,
                         height: 50,
                         fit: BoxFit.contain,
+                        errorBuilder: (context, error, stackTrace) {
+                          return Image.network(
+                            'https://fastly.picsum.photos/id/125/536/354.jpg?hmac=EYT3s6VXrAoggrr4fXsOIIcQ3Grc13fCmXkqcE2FusY',
+                            width: 50,
+                            height: 50,
+                            fit: BoxFit.contain,
+                          );
+                        },
                       ),
                       title: Text(filteredChannels[index].name),
                       onTap: () {
