@@ -25,15 +25,6 @@ Watch 500+ live india TV channels with **IPTV Android Application**
 
 **If you find this helpful, please give a star to this repository and share it with your friends. Your support is greatly appreciated!**
 
-## Other Android Apps on Google Play
-
-| App Name                               | Google Play Link                                                                                                                                                                                         |
-| -------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Hangman Words Game                     | <a href="https://play.google.com/store/apps/details?id=com.nk.hangman"><img src="https://play.google.com/intl/en_us/badges/images/generic/en_badge_web_generic.png" alt="App 1" width="140"></a>         |
-| Block Puzzle Game                      | <a href="https://play.google.com/store/apps/details?id=com.nk.block_puzzle"><img src="https://play.google.com/intl/en_us/badges/images/generic/en_badge_web_generic.png" alt="App 1" width="140"></a>    |
-| Spelling Bee                           | <a href="https://play.google.com/store/apps/details?id=com.nk.spelling_bee"><img src="https://play.google.com/intl/en_us/badges/images/generic/en_badge_web_generic.png" alt="App 1" width="140"></a>    |
-| AnimeWalls: Anime Wallpaper Downloader | <a href="https://play.google.com/store/apps/details?id=com.anime_wallpaper.nk"><img src="https://play.google.com/intl/en_us/badges/images/generic/en_badge_web_generic.png" alt="App 1" width="140"></a> |
-
 ## Disclaimer 📢
 
 - IPTV operates as a simple m3u streaming player.
