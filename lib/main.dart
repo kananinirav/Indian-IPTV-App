@@ -1,24 +1,29 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+
 import 'screens/home.dart';
 
-void main() => runApp(M3UPlayer());
-
-class M3UPlayer extends StatefulWidget {
-  @override
-  _M3UPlayerState createState() => _M3UPlayerState();
+void main() {
+  runApp(const MyApp());
 }
 
-class _M3UPlayerState extends State<M3UPlayer> {
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'Live Tv',
-      home: Scaffold(
-          appBar: AppBar(
-            title: const Text('Channel List'),
-          ),
-          body: const Home()),
+    return Shortcuts(
+      shortcuts: <LogicalKeySet, Intent>{
+        LogicalKeySet(LogicalKeyboardKey.select): const ActivateIntent(),
+      },
+      child: MaterialApp(
+        title: 'Live Tv',
+        debugShowCheckedModeBanner: false,
+        theme: ThemeData(
+          primarySwatch: Colors.blue,
+        ),
+        home: const Home(),
+      ),
     );
   }
 }

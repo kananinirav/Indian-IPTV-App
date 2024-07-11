@@ -1,93 +1,191 @@
-import 'package:chewie/chewie.dart';
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
-import '../model/channel.dart';
-import 'package:wakelock/wakelock.dart'; // Add this import
 
 class Player extends StatefulWidget {
-  final Channel channel;
-
-  Player({required this.channel});
+  final String? url;
+  const Player({super.key, required this.url});
 
   @override
-  _PlayerState createState() => _PlayerState();
+  State<StatefulWidget> createState() => _Player();
 }
 
-class _PlayerState extends State<Player> {
-  late VideoPlayerController videoPlayerController;
-  late ChewieController chewieController;
-  bool _isLoading = true;
-  bool _channelNotFound = false;
+class _Player extends State<Player> {
+  late VideoPlayerController _controller;
+  bool _isFullscreen = true;
+  int _selectedControl = -1;
+  bool _isError = false;
 
   @override
   void initState() {
     super.initState();
-    videoPlayerController =
-        VideoPlayerController.networkUrl(Uri.parse(widget.channel.streamUrl))
-          ..initialize().then((_) {
-            setState(() {
-              _isLoading = false;
-            });
-          }).catchError((error) {
-            setState(() {
-              _isLoading = false;
-              _channelNotFound = true;
-            });
-          });
+    _initializeVideoPlayer();
+  }
 
-    chewieController = ChewieController(
-      videoPlayerController: videoPlayerController,
-      autoInitialize: true,
-      isLive: true,
-      autoPlay: true,
-      aspectRatio: 3 / 2,
-      showOptions: false,
-      customControls: const MaterialDesktopControls(
-        showPlayButton: false,
-      ),
-    );
-
-    // Enable wake lock when video starts playing
-    videoPlayerController.addListener(() {
-      if (videoPlayerController.value.isPlaying) {
-        Wakelock.enable();
-      }
-    });
-
-    // Disable wake lock when video stops
-    videoPlayerController.addListener(() {
-      if (!videoPlayerController.value.isPlaying) {
-        Wakelock.disable();
-      }
-    });
+  Future<void> _initializeVideoPlayer() async {
+    try {
+      _controller =
+          VideoPlayerController.networkUrl(Uri.parse(widget.url ?? ""))
+            ..addListener(() {
+              if (_controller.value.hasError) {
+                setState(() {
+                  _isError = true;
+                });
+              } else {
+                setState(() {});
+              }
+            })
+            ..setLooping(false);
+      await _controller.initialize();
+      if (!mounted) return;
+      setState(() {});
+      _controller.play();
+    } catch (e) {
+      setState(() {
+        _isError = true;
+      });
+    }
   }
 
   @override
   void dispose() {
-    videoPlayerController.dispose();
-    chewieController.dispose();
+    _controller.dispose();
     super.dispose();
+  }
+
+  void _toggleFullscreen() {
+    setState(() {
+      _isFullscreen = !_isFullscreen;
+    });
+  }
+
+  void _selectControl(int index) {
+    setState(() {
+      _selectedControl = index;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.channel.name),
-      ),
       body: Center(
-        child: _isLoading
-            ? const CircularProgressIndicator()
-            : _channelNotFound
-                ? const Text('Channel not available now',
-                    style: TextStyle(fontSize: 24.0))
-                : SizedBox(
-                    height: MediaQuery.of(context).size.height * 0.5,
-                    child: Chewie(
-                      controller: chewieController,
+        child: SingleChildScrollView(
+          child: Stack(
+            alignment: Alignment.bottomCenter,
+            children: [
+              _isError
+                  ? const Center(
+                      child: Text(
+                        'Channel not available now',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 20,
+                        ),
+                      ),
+                    )
+                  : Container(
+                      child: _controller.value.isInitialized
+                          ? (_isFullscreen
+                              ? AspectRatio(
+                                  aspectRatio: _controller.value.aspectRatio,
+                                  child: VideoPlayer(_controller),
+                                )
+                              : Container(
+                                  height: 400,
+                                  width: double.infinity,
+                                  child: AspectRatio(
+                                    aspectRatio: _controller.value.aspectRatio,
+                                    child: VideoPlayer(_controller),
+                                  ),
+                                ))
+                          : Container(),
+                    ),
+              if (!_isError)
+                _ControlsOverlay(
+                  controller: _controller,
+                  isFullscreen: _isFullscreen,
+                  toggleFullscreen: _toggleFullscreen,
+                  selectedControl: _selectedControl,
+                  selectControl: _selectControl,
+                ),
+              if (!_isError)
+                VideoProgressIndicator(_controller, allowScrubbing: true),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _ControlsOverlay extends StatelessWidget {
+  const _ControlsOverlay({
+    super.key,
+    required this.controller,
+    required this.isFullscreen,
+    required this.toggleFullscreen,
+    required this.selectedControl,
+    required this.selectControl,
+  });
+
+  final VideoPlayerController controller;
+  final bool isFullscreen;
+  final VoidCallback toggleFullscreen;
+  final int selectedControl;
+  final Function(int) selectControl;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      mainAxisAlignment: MainAxisAlignment.spaceAround,
+      children: [
+        Container(
+          color: Colors.black26,
+          child: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: AnimatedSwitcher(
+              duration: const Duration(milliseconds: 50),
+              reverseDuration: const Duration(milliseconds: 200),
+              child: Row(
+                children: [
+                  MaterialButton(
+                    onPressed: () {
+                      controller.value.isPlaying
+                          ? controller.pause()
+                          : controller.play();
+                      selectControl(1);
+                    },
+                    color: selectedControl == 1
+                        ? Colors.grey.shade800
+                        : Colors.transparent,
+                    child: Icon(
+                      controller.value.isPlaying
+                          ? Icons.pause
+                          : Icons.play_arrow,
+                      color: Colors.white,
+                      size: 30.0,
                     ),
                   ),
-      ),
+                  const SizedBox(
+                    width: 20,
+                  ),
+                  MaterialButton(
+                    onPressed: toggleFullscreen,
+                    color: selectedControl == 3
+                        ? Colors.grey.shade800
+                        : Colors.transparent,
+                    child: Icon(
+                      isFullscreen ? Icons.fullscreen_exit : Icons.fullscreen,
+                      color: Colors.white,
+                      size: 30.0,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

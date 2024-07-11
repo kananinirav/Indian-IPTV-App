@@ -1,24 +1,23 @@
-import 'dart:async';
-
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import '/screens/player.dart';
-import '../model/channel.dart';
+import 'package:ip_tv/model/channel.dart';
+import 'package:ip_tv/screens/player.dart';
+
 import '../provider/channels_provider.dart';
 
 class Home extends StatefulWidget {
   const Home({Key? key}) : super(key: key);
 
   @override
-  _HomeState createState() => _HomeState();
+  State<Home> createState() => _Home();
 }
 
-class _HomeState extends State<Home> {
+class _Home extends State<Home> with SingleTickerProviderStateMixin {
   List<Channel> channels = [];
   List<Channel> filteredChannels = [];
   TextEditingController searchController = TextEditingController();
   final ChannelsProvider channelsProvider = ChannelsProvider();
   bool _isLoading = true;
-  Timer? _debounceTimer;
 
   @override
   void initState() {
@@ -40,81 +39,70 @@ class _HomeState extends State<Home> {
     }
   }
 
-  void filterChannels(String query) async {
-    if (_debounceTimer != null) {
-      _debounceTimer!.cancel();
-    }
-    _debounceTimer = Timer(const Duration(milliseconds: 500), () async {
-      final filteredData = channelsProvider.filterChannels(query);
-      setState(() {
-        filteredChannels = filteredData;
-      });
-    });
-  }
-
-  @override
-  void dispose() {
-    super.dispose();
-  }
-
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: TextField(
-            controller: searchController,
-            onChanged: (value) {
-              filterChannels(value);
-            },
-            decoration: const InputDecoration(
-              labelText: 'Search',
-              hintText: 'Search channels...',
-              prefixIcon: Icon(Icons.search),
-              border: OutlineInputBorder(),
+    return MaterialApp(
+        home: Scaffold(
+      appBar: AppBar(
+        title: const Text('Live Tv'),
+      ),
+      body: SingleChildScrollView(child: sampleVideoGrid()),
+    ));
+  }
+
+  Widget sampleVideoGrid() {
+    return SingleChildScrollView(
+      child: Column(
+        children: [
+          GridView(
+            shrinkWrap: true,
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 5,
             ),
-          ),
-        ),
-        Expanded(
-          child: _isLoading
-              ? const Center(
-                  child: CircularProgressIndicator(),
-                )
-              : ListView.builder(
-                  itemCount: filteredChannels.length,
-                  itemBuilder: (context, index) {
-                    return ListTile(
-                      leading: Image.network(
-                        filteredChannels[index].logoUrl,
-                        width: 50,
-                        height: 50,
-                        fit: BoxFit.contain,
-                        errorBuilder: (context, error, stackTrace) {
-                          return Image.network(
-                            'https://fastly.picsum.photos/id/125/536/354.jpg?hmac=EYT3s6VXrAoggrr4fXsOIIcQ3Grc13fCmXkqcE2FusY',
-                            width: 50,
-                            height: 50,
-                            fit: BoxFit.contain,
-                          );
-                        },
-                      ),
-                      title: Text(filteredChannels[index].name),
+            children: filteredChannels
+                .map((channel) => InkWell(
                       onTap: () {
                         Navigator.push(
                           context,
-                          MaterialPageRoute(
+                          CupertinoPageRoute(
                             builder: (context) => Player(
-                              channel: filteredChannels[index],
+                              url: channel.streamUrl,
                             ),
                           ),
                         );
                       },
-                    );
-                  },
-                ),
-        ),
-      ],
+                      child: Padding(
+                          padding: const EdgeInsets.all(1.0),
+                          child: Column(
+                            children: [
+                              Image.network(
+                                channel.logoUrl,
+                                height: 150,
+                                width: 150,
+                              ),
+                              const SizedBox(height: 8.0),
+                              Expanded(
+                                child: FittedBox(
+                                  fit: BoxFit.scaleDown,
+                                  child: Text(
+                                    channel.name,
+                                    textAlign: TextAlign.center,
+                                    style: const TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          )),
+                    ))
+                .toList(),
+          ),
+        ],
+      ),
     );
   }
 }
