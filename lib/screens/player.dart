@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
 
@@ -14,6 +15,8 @@ class _Player extends State<Player> {
   bool _isFullscreen = true;
   int _selectedControl = -1;
   bool _isError = false;
+  bool _showControls = true;
+  Timer? _hideControlsTimer;
 
   @override
   void initState() {
@@ -39,6 +42,7 @@ class _Player extends State<Player> {
       if (!mounted) return;
       setState(() {});
       _controller.play();
+      _startHideControlsTimer(); // Start the timer when the video starts playing
     } catch (e) {
       setState(() {
         _isError = true;
@@ -49,67 +53,94 @@ class _Player extends State<Player> {
   @override
   void dispose() {
     _controller.dispose();
+    _hideControlsTimer
+        ?.cancel(); // Cancel the timer when the widget is disposed
     super.dispose();
   }
 
   void _toggleFullscreen() {
     setState(() {
       _isFullscreen = !_isFullscreen;
+      _resetHideControlsTimer(); // Reset the timer when toggling fullscreen
     });
   }
 
   void _selectControl(int index) {
     setState(() {
       _selectedControl = index;
+      _resetHideControlsTimer(); // Reset the timer when a control is selected
+    });
+  }
+
+  void _resetHideControlsTimer() {
+    _hideControlsTimer?.cancel();
+    _showControls = true;
+    _startHideControlsTimer();
+  }
+
+  void _startHideControlsTimer() {
+    _hideControlsTimer = Timer(const Duration(seconds: 10), () {
+      setState(() {
+        _showControls = false;
+      });
     });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Center(
-        child: SingleChildScrollView(
-          child: Stack(
-            alignment: Alignment.bottomCenter,
-            children: [
-              _isError
-                  ? const Center(
-                      child: Text(
-                        'Channel not available now',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 20,
+      body: GestureDetector(
+        onTap: () {
+          setState(() {
+            _showControls = !_showControls;
+          });
+          _resetHideControlsTimer(); // Reset the timer when the user taps the screen
+        },
+        child: Center(
+          child: SingleChildScrollView(
+            child: Stack(
+              alignment: Alignment.bottomCenter,
+              children: [
+                _isError
+                    ? const Center(
+                        child: Text(
+                          'Channel not available now',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 20,
+                          ),
                         ),
-                      ),
-                    )
-                  : Container(
-                      child: _controller.value.isInitialized
-                          ? (_isFullscreen
-                              ? AspectRatio(
-                                  aspectRatio: _controller.value.aspectRatio,
-                                  child: VideoPlayer(_controller),
-                                )
-                              : Container(
-                                  height: 400,
-                                  width: double.infinity,
-                                  child: AspectRatio(
+                      )
+                    : Container(
+                        child: _controller.value.isInitialized
+                            ? (_isFullscreen
+                                ? AspectRatio(
                                     aspectRatio: _controller.value.aspectRatio,
                                     child: VideoPlayer(_controller),
-                                  ),
-                                ))
-                          : Container(),
-                    ),
-              if (!_isError)
-                _ControlsOverlay(
-                  controller: _controller,
-                  isFullscreen: _isFullscreen,
-                  toggleFullscreen: _toggleFullscreen,
-                  selectedControl: _selectedControl,
-                  selectControl: _selectControl,
-                ),
-              if (!_isError)
-                VideoProgressIndicator(_controller, allowScrubbing: true),
-            ],
+                                  )
+                                : Container(
+                                    height: 400,
+                                    width: double.infinity,
+                                    child: AspectRatio(
+                                      aspectRatio:
+                                          _controller.value.aspectRatio,
+                                      child: VideoPlayer(_controller),
+                                    ),
+                                  ))
+                            : Container(),
+                      ),
+                if (!_isError && _showControls)
+                  _ControlsOverlay(
+                    controller: _controller,
+                    isFullscreen: _isFullscreen,
+                    toggleFullscreen: _toggleFullscreen,
+                    selectedControl: _selectedControl,
+                    selectControl: _selectControl,
+                  ),
+                if (!_isError && _showControls)
+                  VideoProgressIndicator(_controller, allowScrubbing: true),
+              ],
+            ),
           ),
         ),
       ),
@@ -155,14 +186,12 @@ class _ControlsOverlay extends StatelessWidget {
                           : controller.play();
                       selectControl(1);
                     },
-                    color: selectedControl == 1
-                        ? Colors.grey.shade800
-                        : Colors.transparent,
+                    color: selectedControl == 1 ? Colors.white : Colors.white,
                     child: Icon(
                       controller.value.isPlaying
                           ? Icons.pause
                           : Icons.play_arrow,
-                      color: Colors.white,
+                      color: Colors.red,
                       size: 30.0,
                     ),
                   ),
@@ -171,12 +200,10 @@ class _ControlsOverlay extends StatelessWidget {
                   ),
                   MaterialButton(
                     onPressed: toggleFullscreen,
-                    color: selectedControl == 3
-                        ? Colors.grey.shade800
-                        : Colors.transparent,
+                    color: selectedControl == 3 ? Colors.white : Colors.white,
                     child: Icon(
                       isFullscreen ? Icons.fullscreen_exit : Icons.fullscreen,
-                      color: Colors.white,
+                      color: Colors.red,
                       size: 30.0,
                     ),
                   ),

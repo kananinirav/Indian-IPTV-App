@@ -79,6 +79,14 @@ class _Home extends State<Home> with SingleTickerProviderStateMixin {
                                 channel.logoUrl,
                                 height: 150,
                                 width: 150,
+                                errorBuilder: (context, error, stackTrace) {
+                                  return Image.asset(
+                                    'assets/images/tv-icon.png',
+                                    width: 150,
+                                    height: 150,
+                                    fit: BoxFit.contain,
+                                  );
+                                },
                               ),
                               const SizedBox(height: 8.0),
                               Expanded(

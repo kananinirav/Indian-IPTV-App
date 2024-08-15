@@ -7,7 +7,7 @@ class ChannelsProvider with ChangeNotifier {
   List<Channel> channels = [];
   List<Channel> filteredChannels = [];
   String sourceUrl =
-      'https://raw.githubusercontent.com/aniketda/iptv2050/main/iptv';
+      'https://raw.githubusercontent.com/FunctionError/PiratesTv/main/combined_playlist.m3u';
 
   Future<List<Channel>> fetchM3UFile() async {
     final response = await http.get(Uri.parse(sourceUrl));
@@ -16,30 +16,25 @@ class ChannelsProvider with ChangeNotifier {
       List<String> lines = fileText.split('\n');
 
       String? name;
-      String? logoUrl;
+      String logoUrl = getDefaultLogoUrl();
       String? streamUrl;
 
-      for (int i = 0; i < lines.length; i++) {
-        String line = lines[i];
+      for (String line in lines) {
         if (line.startsWith('#EXTINF:')) {
-          List<String> parts = line.split(',');
-          name = parts[1];
-          List<String> logoParts = parts[0].split('"');
-          logoUrl = logoParts.length > 3
-              ? logoParts[3]
-              : 'https://fastly.picsum.photos/id/125/536/354.jpg?hmac=EYT3s6VXrAoggrr4fXsOIIcQ3Grc13fCmXkqcE2FusY';
+          name = extractChannelName(line);
+          logoUrl = extractLogoUrl(line) ?? getDefaultLogoUrl();
         } else if (line.isNotEmpty) {
           streamUrl = line;
-          if (name != null && name.isNotEmpty) {
+          if (name != null) {
             channels.add(Channel(
               name: name,
-              logoUrl: logoUrl ??
-                  'https://fastly.picsum.photos/id/928/200/200.jpg?hmac=5MQxbf-ANcu87ZaOn5sOEObpZ9PpJfrOImdC7yOkBlg',
+              logoUrl: logoUrl,
               streamUrl: streamUrl,
             ));
           }
+          // Reset for next channel
           name = null;
-          logoUrl = null;
+          logoUrl = getDefaultLogoUrl();
           streamUrl = null;
         }
       }
@@ -47,6 +42,29 @@ class ChannelsProvider with ChangeNotifier {
     } else {
       throw Exception('Failed to load M3U file');
     }
+  }
+
+  String getDefaultLogoUrl() {
+    return 'assets/images/tv-icon.png';
+  }
+
+  String? extractChannelName(String line) {
+    List<String> parts = line.split(',');
+    return parts.last;
+  }
+
+  String? extractLogoUrl(String line) {
+    List<String> parts = line.split('"');
+    if (parts.length > 1 && isValidUrl(parts[1])) {
+      return parts[1];
+    } else if (parts.length > 5 && isValidUrl(parts[5])) {
+      return parts[5];
+    }
+    return null;
+  }
+
+  bool isValidUrl(String url) {
+    return url.startsWith('https') || url.startsWith('http');
   }
 
   List<Channel> filterChannels(String query) {
