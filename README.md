@@ -4,8 +4,8 @@ Watch 500+ live india TV channels with **IPTV Android Application**
 
 ## [Download Latest APK From Release](https://github.com/kananinirav/iptv-indian-app/releases/)
 
-- [Mobile APK Download Link](https://github.com/kananinirav/Indian-IPTV-App/releases/download/v2.0.0/iptv-mobile.apk)
-- [Android TV APK Download Link](https://github.com/kananinirav/Indian-IPTV-App/releases/download/v2.0.0/iptv-android-tv.apk)
+- [Mobile APK Download Link](https://github.com/kananinirav/Indian-IPTV-App/releases/download/v2.1.0/iptv-mobile.apk)
+- [Android TV APK Download Link](https://github.com/kananinirav/Indian-IPTV-App/releases/download/v2.1.0/iptv-android-tv.apk)
 
 [**Watch Sports TV Channels Online With SPORTS PULSE TV**](https://sports-tv-channels.click/)
 
@@ -44,7 +44,7 @@ Watch 500+ live india TV channels with **IPTV Android Application**
 
 ## Credits
 
-[Channel Source](https://github.com/aniketda/iptv2050)
+[Channel Source](https://github.com/FunctionError/PiratesTv)
 
 ## Star History
 

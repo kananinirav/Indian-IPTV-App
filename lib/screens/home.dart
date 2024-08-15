@@ -91,8 +91,8 @@ class _HomeState extends State<Home> {
                         height: 50,
                         fit: BoxFit.contain,
                         errorBuilder: (context, error, stackTrace) {
-                          return Image.network(
-                            'https://fastly.picsum.photos/id/125/536/354.jpg?hmac=EYT3s6VXrAoggrr4fXsOIIcQ3Grc13fCmXkqcE2FusY',
+                          return Image.asset(
+                            'assets/images/tv-icon.png',
                             width: 50,
                             height: 50,
                             fit: BoxFit.contain,
