@@ -60,7 +60,6 @@ Please Feel free to contribute by submitting a Pull Request!
 
 ![gif](https://media.giphy.com/media/gTURHJs4e2Ies/giphy.gif)
 
-<a href="https://www.buymeacoffee.com/kananinirav" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy Me A Coffee" height="41" width="174"></a>
 <a href="https://paypal.me/kananinirav?country.x=IN&locale.x=en_GB" target="_blank"><img src="https://littlepeopleuk.org/images/Fundraising/paypal.png" alt="Buy Me A Coffee" height="41" width="174"></a>
 
 ## Visitors Count
