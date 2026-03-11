@@ -1,0 +1,104 @@
+name: Android CI
+
+on:
+  push:
+    branches:
+      - master
+      - develop
+  pull_request:
+    branches:
+      - master
+      - develop
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  test-and-build-android:
+    runs-on: ubuntu-latest
+    env:
+      GRADLE_OPTS: -Dorg.gradle.caching=true -Dorg.gradle.parallel=true
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+          cache: gradle
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Cache Pub packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.pub-cache
+          key: ${{ runner.os }}-pub-${{ hashFiles('pubspec.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-pub-
+
+      - name: Flutter pub get
+        run: flutter pub get
+
+      - name: Run tests
+        run: flutter test --no-pub
+
+      - name: Build mobile APK
+        run: |
+          flutter build apk --release --dart-define=TARGET=mobile --no-pub
+          mkdir -p artifacts
+          cp build/app/outputs/flutter-apk/app-release.apk artifacts/app-release-mobile.apk
+
+      - name: Build Android TV APK
+        run: |
+          flutter build apk --release --dart-define=TARGET=tv --no-pub
+          cp build/app/outputs/flutter-apk/app-release.apk artifacts/app-release-tv.apk
+
+      - name: Upload mobile APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-apk-mobile
+          path: artifacts/app-release-mobile.apk
+
+      - name: Upload Android TV APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-apk-tv
+          path: artifacts/app-release-tv.apk
+
+      - name: Prepare GitHub Pages artifacts
+        run: |
+          mkdir -p gh-pages
+          cp artifacts/app-release-mobile.apk gh-pages/app-release-mobile.apk
+          cp artifacts/app-release-tv.apk gh-pages/app-release-tv.apk
+          cat > gh-pages/index.html <<'HTML'
+          <!doctype html>
+          <html lang="en">
+            <head>
+              <meta charset="utf-8">
+              <title>Android APK Downloads</title>
+              <meta name="viewport" content="width=device-width, initial-scale=1">
+            </head>
+            <body>
+              <h1>Android APK Downloads</h1>
+              <ul>
+                <li><a href="app-release-mobile.apk">app-release-mobile.apk</a></li>
+                <li><a href="app-release-tv.apk">app-release-tv.apk</a></li>
+              </ul>
+            </body>
+          </html>
+          HTML
+
+      - name: Deploy APKs to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: gh-pages
+          force_orphan: true

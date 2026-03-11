@@ -19,6 +19,7 @@ class _HomeState extends State<Home> {
   final ChannelsProvider channelsProvider = ChannelsProvider();
   bool _isLoading = true;
   Timer? _debounceTimer;
+  bool _autoOpened = false;
 
   @override
   void initState() {
@@ -34,6 +35,23 @@ class _HomeState extends State<Home> {
         filteredChannels = data;
         _isLoading = false;
       });
+      if (!_autoOpened && data.isNotEmpty) {
+        _autoOpened = true;
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!mounted) {
+            return;
+          }
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => Player(
+                channels: channels,
+                initialIndex: 0,
+              ),
+            ),
+          );
+        });
+      }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('There was a problem finding the data')));
@@ -105,7 +123,8 @@ class _HomeState extends State<Home> {
                           context,
                           MaterialPageRoute(
                             builder: (context) => Player(
-                              channel: filteredChannels[index],
+                              channels: filteredChannels,
+                              initialIndex: index,
                             ),
                           ),
                         );
