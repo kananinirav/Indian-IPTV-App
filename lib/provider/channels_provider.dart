@@ -6,6 +6,7 @@ import '../model/channel.dart';
 class ChannelsProvider with ChangeNotifier {
   List<Channel> channels = [];
   List<Channel> filteredChannels = [];
+  Map<String, List<Channel>> channelsByCountry = {};
   String sourceUrl =
       'https://raw.githubusercontent.com/FunctionError/PiratesTv/main/combined_playlist.m3u';
 
@@ -18,24 +19,43 @@ class ChannelsProvider with ChangeNotifier {
       String? name;
       String logoUrl = getDefaultLogoUrl();
       String? streamUrl;
+      String country = 'India'; // Default country
+      String? category;
+      int channelNumber = 1;
 
       for (String line in lines) {
         if (line.startsWith('#EXTINF:')) {
           name = extractChannelName(line);
           logoUrl = extractLogoUrl(line) ?? getDefaultLogoUrl();
+          country = extractCountry(line);
+          category = extractCategory(line);
         } else if (line.isNotEmpty) {
           streamUrl = line;
           if (name != null) {
-            channels.add(Channel(
+            final channel = Channel(
               name: name,
               logoUrl: logoUrl,
               streamUrl: streamUrl,
-            ));
+              number: channelNumber,
+              country: country,
+              category: category,
+            );
+            channels.add(channel);
+            
+            // Group by country
+            if (!channelsByCountry.containsKey(country)) {
+              channelsByCountry[country] = [];
+            }
+            channelsByCountry[country]!.add(channel);
+            
+            channelNumber++;
           }
           // Reset for next channel
           name = null;
           logoUrl = getDefaultLogoUrl();
           streamUrl = null;
+          country = 'India';
+          category = null;
         }
       }
       return channels;
@@ -65,6 +85,65 @@ class ChannelsProvider with ChangeNotifier {
 
   bool isValidUrl(String url) {
     return url.startsWith('https') || url.startsWith('http');
+  }
+
+  String extractCountry(String line) {
+    // Try to extract from group-title first
+    final groupTitleRegex = RegExp(r'group-title="([^"]+)"');
+    final groupMatch = groupTitleRegex.firstMatch(line);
+    if (groupMatch != null) {
+      return groupMatch.group(1) ?? 'India';
+    }
+
+    // Try to extract from tvg-country
+    final tvgCountryRegex = RegExp(r'tvg-country="([^"]+)"');
+    final countryMatch = tvgCountryRegex.firstMatch(line);
+    if (countryMatch != null) {
+      String countryCode = countryMatch.group(1) ?? '';
+      return convertCountryCodeToName(countryCode);
+    }
+
+    return 'India'; // Default
+  }
+
+  String extractCategory(String line) {
+    final categoryRegex = RegExp(r'tvg-category="([^"]+)"');
+    final match = categoryRegex.firstMatch(line);
+    return match?.group(1) ?? '';
+  }
+
+  static const Map<String, String> _countryCodes = {
+    'IN': 'India',
+    'US': 'United States',
+    'UK': 'United Kingdom',
+    'GB': 'United Kingdom',
+    'CA': 'Canada',
+    'AU': 'Australia',
+    'PK': 'Pakistan',
+    'BD': 'Bangladesh',
+    'NP': 'Nepal',
+    'LK': 'Sri Lanka',
+    'AE': 'UAE',
+    'SA': 'Saudi Arabia',
+  };
+
+  String convertCountryCodeToName(String code) {
+    return _countryCodes[code.toUpperCase()] ?? code;
+  }
+
+  Channel? getChannelByNumber(int number) {
+    return channels.cast<Channel?>().firstWhere(
+      (channel) => channel!.number == number,
+      orElse: () => null,
+    );
+  }
+
+  List<String> getCountries() {
+    return channelsByCountry.keys.toList()..sort();
+  }
+
+  List<Channel> getChannelsForCountry(String country) {
+    return channelsByCountry[country] ?? [];
   }
 
   List<Channel> filterChannels(String query) {
