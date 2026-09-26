@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
+import 'package:wakelock_plus/wakelock_plus.dart';
 
 class Player extends StatefulWidget {
   final String? url;
@@ -33,7 +34,13 @@ class _Player extends State<Player> {
                 setState(() {
                   _isError = true;
                 });
+                WakelockPlus.disable();
               } else {
+                if (_controller.value.isPlaying) {
+                  WakelockPlus.enable();
+                } else {
+                  WakelockPlus.disable();
+                }
                 setState(() {});
               }
             })
@@ -52,9 +59,9 @@ class _Player extends State<Player> {
 
   @override
   void dispose() {
+    WakelockPlus.disable();
     _controller.dispose();
-    _hideControlsTimer
-        ?.cancel(); // Cancel the timer when the widget is disposed
+    _hideControlsTimer?.cancel();
     super.dispose();
   }
 
