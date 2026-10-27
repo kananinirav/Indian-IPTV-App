@@ -7,7 +7,7 @@ import '../model/stream_source.dart';
 import '../provider/channels_provider.dart';
 
 class Home extends StatefulWidget {
-  const Home({Key? key}) : super(key: key);
+  const Home({super.key});
 
   @override
   _HomeState createState() => _HomeState();
@@ -22,6 +22,7 @@ class _HomeState extends State<Home> {
   final ChannelsProvider channelsProvider = ChannelsProvider();
   bool _isLoading = true;
   Timer? _debounceTimer;
+  int _loadGeneration = 0;
 
   @override
   void initState() {
@@ -32,6 +33,7 @@ class _HomeState extends State<Home> {
   Future<void> fetchStreamSources() async {
     try {
       final sources = await channelsProvider.fetchStreamSources();
+      if (!mounted) return;
       setState(() {
         streamSources = sources;
         _isLoading = false;
@@ -49,6 +51,7 @@ class _HomeState extends State<Home> {
   }
 
   Future<void> fetchChannels(StreamSource source) async {
+    final generation = ++_loadGeneration;
     setState(() {
       _isLoading = true;
       selectedSource = source;
@@ -57,12 +60,14 @@ class _HomeState extends State<Home> {
 
     try {
       final data = await channelsProvider.fetchM3UFile(source.streamUrl);
+      if (!mounted || generation != _loadGeneration) return;
       setState(() {
         channels = data;
         filteredChannels = data;
         _isLoading = false;
       });
     } catch (e) {
+      if (!mounted || generation != _loadGeneration) return;
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -78,6 +83,7 @@ class _HomeState extends State<Home> {
   }
 
   void backToCategories() {
+    _loadGeneration++;
     setState(() {
       selectedSource = null;
       channels = [];
@@ -90,7 +96,8 @@ class _HomeState extends State<Home> {
     if (_debounceTimer != null) {
       _debounceTimer!.cancel();
     }
-    _debounceTimer = Timer(const Duration(milliseconds: 500), () {
+    _debounceTimer = Timer(const Duration(milliseconds: 150), () {
+      if (!mounted) return;
       final filteredData = channelsProvider.filterChannels(query);
       setState(() {
         filteredChannels = filteredData;
@@ -184,28 +191,29 @@ class _HomeState extends State<Home> {
               : ListView.builder(
                   itemCount: filteredChannels.length,
                   itemBuilder: (context, index) {
+                    final channel = filteredChannels[index];
+                    final logoUrl = channel.logoUrl;
                     return ListTile(
-                      leading: Image.network(
-                        filteredChannels[index].logoUrl,
-                        width: 50,
-                        height: 50,
-                        fit: BoxFit.contain,
-                        errorBuilder: (context, error, stackTrace) {
-                          return Image.asset(
-                            'assets/images/tv-icon.png',
-                            width: 50,
-                            height: 50,
-                            fit: BoxFit.contain,
-                          );
-                        },
-                      ),
-                      title: Text(filteredChannels[index].name),
+                      leading: logoUrl.startsWith('http')
+                          ? Image.network(
+                              logoUrl,
+                              width: 50,
+                              height: 50,
+                              cacheWidth: 100,
+                              fit: BoxFit.contain,
+                              errorBuilder: (context, error, stackTrace) =>
+                                  Image.asset('assets/images/tv-icon.png',
+                                      width: 50, height: 50, fit: BoxFit.contain),
+                            )
+                          : Image.asset('assets/images/tv-icon.png',
+                              width: 50, height: 50, fit: BoxFit.contain),
+                      title: Text(channel.name),
                       onTap: () {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
                             builder: (context) => Player(
-                              channel: filteredChannels[index],
+                              channel: channel,
                             ),
                           ),
                         );

@@ -7,7 +7,7 @@ import 'package:wakelock_plus/wakelock_plus.dart';
 class Player extends StatefulWidget {
   final Channel channel;
 
-  Player({required this.channel});
+  const Player({super.key, required this.channel});
 
   @override
   _PlayerState createState() => _PlayerState();
@@ -18,54 +18,60 @@ class _PlayerState extends State<Player> {
   late ChewieController chewieController;
   bool _isLoading = true;
   bool _channelNotFound = false;
+  bool _disposed = false;
+  bool _chewieCreated = false;
+  late final VoidCallback _playbackListener;
 
   @override
   void initState() {
     super.initState();
     videoPlayerController =
-        VideoPlayerController.networkUrl(Uri.parse(widget.channel.streamUrl))
-          ..initialize().then((_) {
-            setState(() {
-              _isLoading = false;
-            });
-          }).catchError((error) {
-            setState(() {
-              _isLoading = false;
-              _channelNotFound = true;
-            });
-          });
-
-    chewieController = ChewieController(
-      videoPlayerController: videoPlayerController,
-      autoInitialize: true,
-      isLive: true,
-      autoPlay: true,
-      aspectRatio: 3 / 2,
-      showOptions: false,
-      customControls: const MaterialDesktopControls(
-        showPlayButton: false,
-      ),
-    );
-
-    // Enable wake lock when video starts playing
-    videoPlayerController.addListener(() {
+        VideoPlayerController.networkUrl(Uri.parse(widget.channel.streamUrl));
+    _playbackListener = () {
       if (videoPlayerController.value.isPlaying) {
         WakelockPlus.enable();
-      }
-    });
-
-    // Disable wake lock when video stops
-    videoPlayerController.addListener(() {
-      if (!videoPlayerController.value.isPlaying) {
+      } else {
         WakelockPlus.disable();
       }
-    });
+    };
+    videoPlayerController.addListener(_playbackListener);
+    _initializePlayer();
+  }
+
+  Future<void> _initializePlayer() async {
+    try {
+      await videoPlayerController
+          .initialize()
+          .timeout(const Duration(seconds: 30));
+      if (_disposed) return;
+      chewieController = ChewieController(
+        videoPlayerController: videoPlayerController,
+        autoInitialize: false,
+        isLive: true,
+        autoPlay: false,
+        aspectRatio: 3 / 2,
+        showOptions: false,
+        customControls: const MaterialDesktopControls(showPlayButton: false),
+      );
+      _chewieCreated = true;
+      setState(() => _isLoading = false);
+      await videoPlayerController.play();
+    } catch (_) {
+      if (_disposed) return;
+      setState(() {
+        _isLoading = false;
+        _channelNotFound = true;
+      });
+    }
   }
 
   @override
   void dispose() {
+    _disposed = true;
+    videoPlayerController.removeListener(_playbackListener);
+    if (_chewieCreated) chewieController.dispose();
     videoPlayerController.dispose();
-    chewieController.dispose();
+    WakelockPlus.disable();
     super.dispose();
   }
 

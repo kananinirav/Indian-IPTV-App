@@ -1,3 +1,6 @@
+import 'dart:collection';
+
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
@@ -10,9 +13,12 @@ class ChannelsProvider with ChangeNotifier {
 
   List<Channel> channels = [];
   List<Channel> filteredChannels = [];
+  final _playlistCache = LinkedHashMap<String, List<Channel>>();
 
   Future<List<StreamSource>> fetchStreamSources() async {
-    final response = await http.get(Uri.parse(streamsCatalogUrl));
+    final response = await http
+        .get(Uri.parse(streamsCatalogUrl))
+        .timeout(const Duration(seconds: 15));
     if (response.statusCode != 200) {
       throw Exception('Failed to load stream sources');
     }
@@ -40,37 +46,26 @@ class ChannelsProvider with ChangeNotifier {
   }
 
   Future<List<Channel>> fetchM3UFile(String sourceUrl) async {
-    channels.clear();
-    filteredChannels.clear();
+    final cached = _playlistCache[sourceUrl];
+    if (cached != null) {
+      _playlistCache.remove(sourceUrl);
+      _playlistCache[sourceUrl] = cached;
+      channels = cached;
+      filteredChannels = cached;
+      return cached;
+    }
 
-    final response = await http.get(Uri.parse(sourceUrl));
+    final response = await http
+        .get(Uri.parse(sourceUrl))
+        .timeout(const Duration(seconds: 30));
     if (response.statusCode == 200) {
-      String fileText = response.body;
-      List<String> lines = fileText.split('\n');
-
-      String? name;
-      String logoUrl = getDefaultLogoUrl();
-      String? streamUrl;
-
-      for (String line in lines) {
-        if (line.startsWith('#EXTINF:')) {
-          name = extractChannelName(line);
-          logoUrl = extractLogoUrl(line) ?? getDefaultLogoUrl();
-        } else if (line.isNotEmpty && !line.startsWith('#')) {
-          streamUrl = line.trim();
-          if (name != null) {
-            channels.add(Channel(
-              name: name,
-              logoUrl: logoUrl,
-              streamUrl: streamUrl,
-            ));
-          }
-          name = null;
-          logoUrl = getDefaultLogoUrl();
-          streamUrl = null;
-        }
+      final loadedChannels = await compute(_parseM3U, response.body);
+      channels = List.unmodifiable(loadedChannels);
+      filteredChannels = channels;
+      _playlistCache[sourceUrl] = channels;
+      while (_playlistCache.length > 2) {
+        _playlistCache.remove(_playlistCache.keys.first);
       }
-      filteredChannels = List.from(channels);
       return channels;
     } else {
       throw Exception('Failed to load M3U file');
@@ -101,10 +96,49 @@ class ChannelsProvider with ChangeNotifier {
   }
 
   List<Channel> filterChannels(String query) {
+    final normalizedQuery = query.trim().toLowerCase();
+    if (normalizedQuery.isEmpty) {
+      filteredChannels = channels;
+      return filteredChannels;
+    }
     filteredChannels = channels
         .where((channel) =>
-            channel.name.toLowerCase().contains(query.toLowerCase()))
+            channel.name.toLowerCase().contains(normalizedQuery))
         .toList();
     return filteredChannels;
   }
+}
+
+List<Channel> _parseM3U(String fileText) {
+  final loadedChannels = <Channel>[];
+  String? name;
+  var logoUrl = 'assets/images/tv-icon.png';
+
+  for (final rawLine in fileText.split('\n')) {
+    final line = rawLine.trim();
+    if (line.startsWith('#EXTINF:')) {
+      name = line.split(',').last.trim();
+      final quotedValues = line.split('"');
+      logoUrl = 'assets/images/tv-icon.png';
+      for (var i = 1; i < quotedValues.length; i += 2) {
+        final candidate = quotedValues[i];
+        if (candidate.startsWith('http://') || candidate.startsWith('https://')) {
+          logoUrl = candidate;
+          break;
+        }
+      }
+    } else if (line.isNotEmpty && !line.startsWith('#')) {
+      if (name != null) {
+        loadedChannels.add(Channel(
+          name: name,
+          logoUrl: logoUrl,
+          streamUrl: line,
+        ));
+      }
+      name = null;
+      logoUrl = 'assets/images/tv-icon.png';
+    }
+  }
+
+  return loadedChannels;
 }
